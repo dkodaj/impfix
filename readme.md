@@ -19,7 +19,7 @@ myFunc xs =
 
 	"""
 
-impfix sampleCode "" ==
+impfix sampleCode [] ==
 	"""
 import Json.Encode as Enc
 import List exposing (map)
@@ -35,7 +35,7 @@ f x = x + 1
 g x = x - 1 
 	"""
 
-impfix sampleCode sampleModule == 
+impfix sampleCode [sampleModule] == 
 	"""
 import Json.Encode as Enc
 import List exposing (map)
