@@ -1,12 +1,11 @@
 module Impfix.Unqualified exposing (uqImports)
 
-import Impfix.Helpers exposing (clean, decomment, removeStringLiterals, unique)
-import Impfix.ImpTypes exposing (Constructors(Constructors), Expose(Simple, Complex), ExposeList(Qualified), Import)
-import Impfix.Imports exposing (exposeList)
+import Impfix.Helpers exposing (bracketed, clean, debracket, decomment, removeStringLiterals, unique)
+import Impfix.ImpTypes exposing (Constructors(Constructors, DotDot), Expose(Simple, Complex, Operator), ExposeList(Qualified), Import)
 import Impfix.TypeExtract exposing (grabTypeDefs, Type(..), TypeDef)
 import List exposing (filter, map, member)
-import Regex exposing (find, HowMany(..), Match, regex)
-import String
+import Regex exposing (find, HowMany(All), Match, regex)
+import String exposing (split, trim)
 
 --== Make unqualified imports explicit ==--
 
@@ -26,14 +25,59 @@ import String
       module Submodule (Animal(..)) where ...
 -}
 
-exposeAll: String -> List Expose
-exposeAll sourceTxt =
+exposeAll: List Expose -> String -> List Expose
+exposeAll allTypes sourceTxt =
     let
         toSimple a = Simple a
         funcs = map toSimple <| funcsDefined sourceTxt
-        types = map exposeType <| grabTypeDefs sourceTxt
     in
-        funcs ++ types
+        funcs ++ allTypes
+
+exposeGrab: List Expose -> List (Maybe String) -> Maybe Expose
+exposeGrab allTypes submatch =
+    case submatch of
+        Just x::Nothing::whatever->
+            let
+                name = trim x
+            in
+                case bracketed name of
+                    True->
+                        Just <| Operator (debracket name)
+                    False->
+                        Just <| (Simple name)
+        Just x::Just y::whatever->
+            let
+                name = trim x
+                relevantType = filter typeFilter allTypes
+                typeFilter a = 
+                  case a of
+                    Simple b->
+                        b == name
+                    Complex b _->
+                        b == name
+                    Operator _->
+                        False
+                words = map trim <| split "," y
+            in
+                case words of
+                    [".."]->
+                        case relevantType of
+                          []->
+                            Just <| Complex name DotDot
+                          a::bs->
+                            Just a
+                    []->
+                        Just <| Simple name
+                    _->
+                        Just <| Complex name (Constructors words)
+        _->
+            Nothing
+
+exposeList: List Expose -> String -> List Expose
+exposeList allTypes exposeTxt  =
+    clean <| map (exposeGrab allTypes) <| map .submatches <| find All expListRegex exposeTxt
+
+expListRegex = regex "(.+?)\\s*(?:\\(((?:\\w|\\s|\\.|,)*?)\\)\\s*)?(?:,\\s*|$)"
 
 exposeType: TypeDef -> Expose
 exposeType typeDef =
@@ -72,11 +116,12 @@ uqImports: String -> List Import
 uqImports txt = 
     let
         cleanTxt = removeStringLiterals <| decomment txt
+        allTypes = map exposeType <| grabTypeDefs cleanTxt
     in
-        clean <| map uqImportGrab <| find All uqImportRegex cleanTxt
+        clean <| map (uqImportGrab allTypes) <| find All uqImportRegex cleanTxt
 
-uqImportGrab: Match -> Maybe Import
-uqImportGrab match =
+uqImportGrab: List Expose -> Match -> Maybe Import
+uqImportGrab allTypes match =
     case match.submatches of
         Just ""::whatever->
             Nothing
@@ -88,17 +133,17 @@ uqImportGrab match =
         Just a::Just ".."::bs->
             Just { fullName = a
                  , shortName = Nothing
-                 , exposes = Qualified (exposeAll match.match)
+                 , exposes = Qualified (exposeAll allTypes match.match)
                  }
         Just a::Just b::cs->
             Just { fullName = a
                  , shortName = Nothing
-                 , exposes = Qualified (exposeList b)
+                 , exposes = Qualified (exposeList allTypes b)
                  }
         _->
             Nothing
 
-uqImportRegex = regex "\\n*(?:port\\s+)?module\\s+((?:\\w|\\.)+)\\s+exposing\\s*\\(((?:.|\\n)+?)\\)\\s*?(?=(?:\\n$|\\n\\w))(?:(?:.|\\n)*?(?=(?:\\nmodule\\s+|$)))"
+uqImportRegex = regex "\\n*(?:port\\s+)?module\\s+((?:\\w|\\.)+)\\s+exposing\\s*\\(((?:.|\\n)+?)\\)\\s*?(?=(?:\\n$|\\n\\w))(?:(?:.|\\n)*)"
 -- Grabs the whole of a module, submatching the module name and the thing inside "exposed(...)".
--- Can handle multiple modules copied after one another.
+--(?=(?:\\nmodule\\s+|$))
 

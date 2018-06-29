@@ -1,19 +1,19 @@
 module Impfix exposing (..)
 
 import Impfix.Helpers exposing (among, clean, decomment, isPrefix, occurs, remove, removeStringLiterals, sortCaseInsensitive, unique)
-import Impfix.ImpTypes exposing (Constructors(..), Expose(..), ExposeList(..), Import)
+import Impfix.ImpTypes exposing (Constructors(Constructors, DotDot), Expose(Simple, Complex, Operator), ExposeList(Qualified, Unqualified), Import)
 import Impfix.Imports exposing (imports, importsRegex)
 import Impfix.Unqualified exposing (uqImports)
 import List exposing (concat, filter, map, sortBy)
-import Regex exposing (HowMany(..), regex)
 import String exposing (contains, dropLeft, indices, join, left, trim)
 
 body: String -> String
 body sourceTxt =
     let
-        headerRegex = regex "(?:port\\s+)?module (?:.|\\n)+?(?=(?:\\n\\w|$))"
+        (header,rawBody) = headerBody sourceTxt
+        --headerRegex = regex "(?:port\\s+)?module (?:.|\\n)+?(?=(?:\\n\\w|$))"
     in
-        remove importsRegex <| decomment <| remove headerRegex <| removeStringLiterals sourceTxt
+        remove importsRegex <| decomment <| removeStringLiterals rawBody
 
 {-
 funcsTypesInvoked: String -> List String
@@ -24,11 +24,14 @@ funcsTypesInvoked sourceTxt =
     in
         map .match <| find All funcOrType <| body sourceTxt
 -}
+
 funcsTypesInvoked: String -> List String
 funcsTypesInvoked sourceTxt =
     funcsTypesHelp (body sourceTxt) [] "" True
 
 funcsTypesHelp txt found nextWord waitForSeparator =
+    -- This monster is a coded-up version of the funcOrType regex (see just above).
+    -- Apparently, node.js and some browsers don't support lookbehind groups yeahh.
     let
         nextChar = left 1 txt
         notReserved a = not <| among reservedWords a
@@ -36,7 +39,7 @@ funcsTypesHelp txt found nextWord waitForSeparator =
     in
         case txt of
             ""->
-                filter notReserved found
+                filter notReserved (nextWord::found)
             _->
                 case separator nextChar of
                     True->
@@ -68,7 +71,6 @@ reservedWords =
     , "let"
     , "module", "of", "port"
     , "then", "type"]
-
 
 headerBody sourceTxt =
     let
@@ -111,27 +113,12 @@ impfix srcTxt importTxts =
 impfixGraft: String->List String->String
 impfixGraft srcTxt importTxts =
     let
-        (header,body) = headerBody srcTxt
+        (header, rawBody) = headerBody srcTxt
         imps = impfix srcTxt importTxts
-        rest = trim <| remove importsRegex body
+        rest = trim <| remove importsRegex rawBody
     in
         header ++ "\n\n" ++ imps ++ "\n\n" ++ rest
 
-{-
-impfixWorker: String->List String->String
-impfixWorker srcTxt importTxts =
-    let
-        header = 
-            case map .match <| find (AtMost 1) headerRegex srcTxt of
-                []->
-                    ""
-                x::whatever->
-                    x
-        imps = impfix srcTxt importTxts
-        rest = remove importsRegex <| remove headerRegex srcTxt
-    in
-        header ++ "\\n" ++ imps
--}
 using: List String -> String -> Import -> Maybe Import
 using funcsTypesInvoked srcBody imp =
     let

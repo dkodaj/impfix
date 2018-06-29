@@ -2,7 +2,7 @@ module Impfix.TypeExtract exposing (..)
 
 import Impfix.Helpers exposing (clean, components, debracket, decomment, dropWord, inBrackets, inCurly, outsideBrackets, outsideCurly, removeColons, removeStringLiterals, singleLine, singleSpace)
 import List exposing (map)
-import Regex exposing (HowMany(..), Match, find, regex)
+import Regex exposing (find, HowMany(..), Match, regex)
 import String exposing (dropLeft, indices, left, split, trim, words)
 
 type Type = 
