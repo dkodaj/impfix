@@ -1,4 +1,4 @@
-# Elm imports fix
+# Elm imports cleanup tool
 
 Removes unused imports from Elm code. You must pass in the source code as text.
 
