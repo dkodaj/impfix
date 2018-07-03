@@ -63,5 +63,5 @@ importGrab submatch =
             Nothing
 
 importsRegex =
-    regex "import\\s+((?:\\w|\\.)+)\\s*?(?: as (\\w+)\\s*?)?(?: exposing\\s*\\(((?:.|\\n)+?)\\)\\s*)?(?=(?:\\n$|\\n\\w))"
+    regex "import\\s+((?:\\w|\\.)+)\\s*?(?: as (\\w+)\\s*?)?(?: exposing\\s*\\(((?:.|\\n)+?)\\)\\s*)?(?=(?:\\n$|\\n\\w)|\\s*--|\\s*\\{-)"
 --grabs module name, nickname ("as ...") and the things inside "exposing (...)", if any

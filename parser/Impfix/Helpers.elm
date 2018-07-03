@@ -130,7 +130,7 @@ remove regex txt = replace All regex (\a->"") txt
 
 removeColons txt = remove (regex "\\.") txt
 
-removeStringLiterals txt = remove stringsDoubleQuoted <| remove stringsTripleQuoted txt
+removeStringLiterals txt = remove stringsQuoted <| remove stringsTripleQuoted txt
 
 sortCaseInsensitive xs =
     let
@@ -138,9 +138,9 @@ sortCaseInsensitive xs =
     in
         sortWith comp xs
 
-stringsDoubleQuoted = regex "\".*?\""
+stringsQuoted = regex "\".*?\""
 
-stringsTripleQuoted = regex "\"\"\"(?:\\n|.)+?\"\"\""
+stringsTripleQuoted = regex "\"\"\"(?:\\n|.)*?\"\"\""
 
 singleLine txt =
     singleSpace <| replace All (regex "[\\r\\n]") (\a->" ") txt

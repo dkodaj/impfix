@@ -1,4 +1,4 @@
-module Impfix exposing (..)
+module Impfix exposing (impfix, impfixGraft, output)
 
 import Impfix.Helpers exposing (among, clean, decomment, isPrefix, occurs, remove, removeStringLiterals, sortCaseInsensitive, unique)
 import Impfix.ImpTypes exposing (Constructors(Constructors, DotDot), Expose(Simple, Complex, Operator), ExposeList(Qualified, Unqualified), Import)
@@ -30,8 +30,8 @@ funcsTypesInvoked sourceTxt =
     funcsTypesHelp (body sourceTxt) [] "" True
 
 funcsTypesHelp txt found nextWord waitForSeparator =
-    -- This monster is a coded-up version of the funcOrType regex (see just above).
-    -- Apparently, node.js and some browsers don't support lookbehind groups yeahh.
+    -- This monster is a coded-up version of a regex (see fincOrType above above).
+    -- Apparently, lookbehind groups have only been implemented in ES2018...
     let
         nextChar = left 1 txt
         notReserved a = not <| among reservedWords a
@@ -75,9 +75,13 @@ reservedWords =
 headerBody sourceTxt =
     let
         n =
-            case indices "module " sourceTxt of
+            case indices "port module " sourceTxt of
                 []->
-                    0
+                    case indices "module " sourceTxt of
+                        []->
+                            0
+                        x::xs->
+                            x
                 x::xs->
                     x
     in
