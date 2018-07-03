@@ -1,0 +1,17 @@
+{
+  "name": "elm-impfix",
+  "version": "1.0.0",
+  "description": "Removes unused imports from Elm modules",
+  "repository": "https://github.com/dkodaj/impfix",
+  "bin": {
+    "elm-impfix": "./elmimpfix.js"
+  },
+  "author": "Daniel Kodaj",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "commander": "^2.15.1",
+    "glob": "^7.1.2",
+    "parse-filepath": "^1.0.2"
+  }
+}
