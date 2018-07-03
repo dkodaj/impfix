@@ -49,6 +49,8 @@ import MyModule exposing (f)
 
 ## Command line tool
 
+Install the [npm package](https://www.npmjs.com/package/elm-impfix):
+
 ```
 npm install -g elm-impfix
 ```
