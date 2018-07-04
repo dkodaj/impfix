@@ -5,13 +5,13 @@ import Impfix.ImpTypes exposing (Constructors(Constructors, DotDot), Expose(Simp
 import Impfix.Imports exposing (imports, importsRegex)
 import Impfix.Unqualified exposing (uqImports)
 import List exposing (concat, filter, map, sortBy)
+import Regex exposing (find, HowMany(..), regex)
 import String exposing (contains, dropLeft, indices, join, left, trim)
 
 body: String -> String
 body sourceTxt =
     let
         (header,rawBody) = headerBody sourceTxt
-        --headerRegex = regex "(?:port\\s+)?module (?:.|\\n)+?(?=(?:\\n\\w|$))"
     in
         remove importsRegex <| decomment <| removeStringLiterals rawBody
 
@@ -31,7 +31,7 @@ funcsTypesInvoked sourceTxt =
 
 funcsTypesHelp txt found nextWord waitForSeparator =
     -- This monster is a coded-up version of a regex (see fincOrType above above).
-    -- Apparently, lookbehind groups have only been implemented in ES2018...
+    -- Lookbehind were first implemented in ES2018...
     let
         nextChar = left 1 txt
         notReserved a = not <| among reservedWords a
@@ -73,31 +73,17 @@ reservedWords =
     , "then", "type"]
 
 headerBody sourceTxt =
-    let
-        n =
-            case indices "port module " sourceTxt of
-                []->
-                    case indices "module " sourceTxt of
-                        []->
-                            0
-                        x::xs->
-                            x
-                x::xs->
-                    x
-    in
-        headerHelp ("", dropLeft n sourceTxt)
+    case map .submatches (find (AtMost 1) headerBodyRegex sourceTxt) of
+        (Just a::Just b::cs)::rest->
+            (trim a,b)
+        (Just a::Nothing::cs)::rest->
+            (trim a,"")
+        (Nothing::Just a::bs)::rest->
+            ("",a)
+        _->
+            ("","")
 
-headerHelp (header,txt) =
-    let
-        nextChar = left 1 txt
-    in
-        case nextChar of
-            "\n"->
-                (header, txt)
-            ""->
-                (header, txt)
-            _->
-                headerHelp (header++nextChar, dropLeft 1 txt)
+headerBodyRegex = regex "\\n*((?:(?:port|effect)\\s+)?module\\s+(?:\\w|\\.)+\\s+(?:where\\s+\\{.+?\\}\\s+)?exposing\\s*\\((?:.|\\n)+?\\)\\s*?)(?=(?:$|--|{-|\\w))((?:.|\\n)*)"
 
 impfix: String -> List String -> String
 impfix srcTxt importTxts =

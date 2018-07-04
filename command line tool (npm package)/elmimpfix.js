@@ -12,8 +12,10 @@ elmWorker.ports.error.subscribe(errLog);
 
 elmWorker.ports.output.subscribe( (fixed) => {
 	var outputFlag = program.output;
-	if (!outputFlag) outputFlag = "*_Impfix.*";
-    if (outputFlag.indexOf("/") === -1 && outputFlag.indexOf("\\") === -1) {
+	var replace = program.replace;
+	if (!outputFlag && !replace) outputFlag = "./*_Impfix.*";
+	if (replace) outputFlag = "**/*.*";
+    if (outputFlag.indexOf("/") === -1) {
 		outputFlag = "./" + outputFlag; 
 	}
 	var out = outputFileName(fixed.name, outputFlag);
@@ -42,15 +44,16 @@ function noWildcards(txt){
 	return (txt.indexOf('*') === -1)
 }
 
-function outputFileName(source,output) {
-	sourceParsed = parsePath(source);
-	if (output) {
-		outParsed = parsePath(output);
+function outputFileName(source, outputFlag) {
+	var sourceParsed = parsePath(source);
+	if (outputFlag) {
+		outParsed = parsePath(outputFlag);
+		var outDir = outParsed.dir.replace("**", sourceParsed.dir);
 		var outStem = outParsed.stem.replace("*", sourceParsed.stem);
 		var outExt = outParsed.ext.replace("*", sourceParsed.ext.replace('.',''));
-		return unixify(outParsed.dir) + "/" + outStem + outExt;
+		return outDir + "/" + outStem + outExt;
 	} else {
-		return unixify(sourceParsed.dir) + "/" + sourceParsed.stem + "_Impfix" + sourceParsed.ext;
+		return sourceParsed.dir + "/" + sourceParsed.stem + "_Impfix" + sourceParsed.ext;
 	}
 }
 
@@ -75,17 +78,14 @@ function sendSourceFile(filename){
 	}
 }
 
-function unixify(path){
-	return path.replace(new RegExp("\\\\", 'g'), "/");
-}
-
 program
 	.name('elm-impfix')
 	.usage('<filename> [options]')	
 	.arguments('<filename>', 'Name of file to fix')
 	.option('-o, --output <filename>','Output file (default: name_Impfix.ext)')
+	.option('-r, --replace','Replace all affected files (equivalent to -o "**/*.*")')
 	.option('-q, --qualify <filename(s)>','Source code of unqualified imports (optional)', list)
-	.version('1.0.0','-v, --version')
+	.version('1.0.2','-v, --version')
 	.action(function(source){
 		if (program.qualify) {
 			for (var qualifySource of program.qualify) {
@@ -125,10 +125,8 @@ program.on('--help', function(){
 	  console.log('');
 	  console.log('  Notes:');
 	  console.log('  -----');
-	  console.log('  • <filename> supports wildcards. Use relative paths.');
-	  console.log('  • -o supports wildcards in filename but not in path.');
+	  console.log('  • All parameters support wildcards. Wildcard params must be quoted.');
 	  console.log('  • -q can be used to qualify "exposing (...)" or "exposing(MyType(...))" style imports.');
-	  console.log('  • -q supports wildcards. Quote lists of files (-q "module1.elm module2.elm").');
 	})
 
 program.parse(process.argv);

@@ -1,4 +1,4 @@
-# Command line tool
+# Command-line tool
 
 ## Install
 ```
@@ -36,7 +36,13 @@ All params support wildcards:
 $ elm-impfix "*.elm"  -o "../build/*.*"  -q "./Imports/*.elm"
 ```
 
-Wildcard params must be quoted. Directory wildcards can't be used in -o.
+Wildcard params must be quoted.
+
+To overwrite all source files, use the -r (--replace) flag. To recursively overwrite all .elm files in a folder, use
+
+```
+elm-impfix "folder/**/*.elm" -r
+```
 
 ## Bugs
 

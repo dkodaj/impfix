@@ -143,7 +143,7 @@ uqImportGrab allTypes match =
         _->
             Nothing
 
-uqImportRegex = regex "\\n*(?:port\\s+)?module\\s+((?:\\w|\\.)+)\\s+exposing\\s*\\(((?:.|\\n)+?)\\)\\s*?(?=(?:\\n$|\\n\\w))(?:(?:.|\\n)*)"
+uqImportRegex = regex "\\n*(?:(?:port|effect)\\s+)?module\\s+((?:\\w|\\.)+)\\s+(?:where\\s+\\{.+?\\}\\s+)?exposing\\s*\\(((?:.|\\n)+?)\\)\\s*?(?=(?:$|--|{-|\\w))(?:.|\\n)*"
 -- Grabs the whole of a module, submatching the module name and the thing inside "exposed(...)".
---(?=(?:\\nmodule\\s+|$))
+--"\\n*(?:port\\s+)?module\\s+((?:\\w|\\.)+)\\s+exposing\\s*\\(((?:.|\\n)+?)\\)\\s*?(?=(?:\\n$|\\n\\w))(?:(?:.|\\n)*)"
 

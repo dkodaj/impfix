@@ -1,11 +1,11 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "summary": "Elm impfix - removes unused imports",
     "repository": "https://github.com/dkodaj/impfix.git",
     "license": "BSD3",
     "source-directories": [
         ".",
-        "./Impfix"
+        "./parser/Impfix"
     ],
     "exposed-modules": [],
     "dependencies": {
