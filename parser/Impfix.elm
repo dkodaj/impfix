@@ -92,9 +92,9 @@ impfix srcTxt importTxts =
         imps = unqualifiedModules ++ (filter (not << unqualified) impsFromSrc)
         impsFromSrc = imports srcTxt
         relevant a = among relevantNames a.fullName
-        relevantNames = map .fullName impsFromSrc
+        relevantNames = map .fullName <| filter unqualified impsFromSrc
         srcBody = body srcTxt
-        unqualified a = among unqualifiedNames a.fullName
+        unqualified a = a.exposes == Unqualified
         unqualifiedModules = filter relevant <| concat <| map uqImports importTxts
         unqualifiedNames = map .fullName unqualifiedModules
     in
