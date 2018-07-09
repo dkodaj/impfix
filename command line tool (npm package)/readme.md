@@ -1,4 +1,4 @@
-# Command-line tool
+# Command line too,l
 
 ## Install
 ```
@@ -42,6 +42,12 @@ To overwrite all source files, use the -r (--replace) flag. To recursively overw
 
 ```
 elm-impfix "folder/**/*.elm" -r
+```
+
+To exclude some files from the output wildcard, use -x (--exclude):
+
+```
+elm-impfix "folder/**/*.elm" -r -x "folder/elm-stuff/**/*.*"
 ```
 
 ## Bugs

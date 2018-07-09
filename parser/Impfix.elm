@@ -115,9 +115,9 @@ using funcsTypesInvoked srcBody imp =
         name =
             case imp.shortName of
                 Nothing->
-                    imp.fullName
+                    imp.fullName ++ "."
                 Just a->
-                    a
+                    a ++ "."
         namespaced = isPrefix name funcsTypesInvoked
         occurs x = among funcsTypesInvoked x
         expCheck x =

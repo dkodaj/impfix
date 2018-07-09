@@ -44,7 +44,9 @@ clean xs =
         concat <| map dropJust xs
 
 components: String -> List String 
-components txt = --helper for Destructuring.deunion
+components txt =
+    --helper for Unqualified.deunion
+    --components "A String | B Float | C (Maybe Float)" == ["A String", "B Int", "C (Maybe Float)"] 
     componentsHelp (indices " " txt) 0 txt
 
 componentsHelp idxs start txt =
@@ -164,11 +166,11 @@ uniqueHelp checked remaining =
         []->
             checked
         x::xs->
-            case any (\a->(a==x)) (checked++xs) of
+            case any (\a->(a==x)) checked of
                 False->
                     uniqueHelp (x::checked) xs
                 True->
-                   uniqueHelp checked xs 
+                    uniqueHelp checked xs 
 
 
 

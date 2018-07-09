@@ -8,6 +8,8 @@ var glob = require('glob');
 var parsePath = require('parse-filepath');
 var program = require('commander');
 
+var exclude = [];
+
 elmWorker.ports.error.subscribe(errLog);
 
 elmWorker.ports.output.subscribe( (fixed) => {
@@ -15,9 +17,6 @@ elmWorker.ports.output.subscribe( (fixed) => {
 	var replace = program.replace;
 	if (!outputFlag && !replace) outputFlag = "./*_Impfix.*";
 	if (replace) outputFlag = "**/*.*";
-    if (outputFlag.indexOf("/") === -1) {
-		outputFlag = "./" + outputFlag; 
-	}
 	var out = outputFileName(fixed.name, outputFlag);
 	fs.writeFile(out, fixed.code, (err) => {
   		if (err) {
@@ -67,7 +66,9 @@ function sendImportFile(filename){
 }
 
 function sendSourceFile(filename){
+	if (exclude.indexOf(filename) > -1) return;
 	try {
+		if (filename.indexOf("/")===-1) filename = "./"+filename;
 		const data = fs.readFileSync(filename,'utf8');
 		var file = {};
     	file.name = filename;
@@ -81,12 +82,14 @@ function sendSourceFile(filename){
 program
 	.name('elm-impfix')
 	.usage('<filename> [options]')	
-	.arguments('<filename>', 'Name of file to fix')
-	.option('-o, --output <filename>','Output file (default: name_Impfix.ext)')
+	.arguments('<file(s)>', 'Name of file to fix')
+	.option('-o, --output <file(s)>','Output file (default: name_Impfix.ext)')
 	.option('-r, --replace','Replace all affected files (equivalent to -o "**/*.*")')
-	.option('-q, --qualify <filename(s)>','Source code of unqualified imports (optional)', list)
-	.version('1.0.2','-v, --version')
+	.option('-x, --exclude <file(s)>','Don\' touch these files (e.g "-x ./elm-stuff/*.*")')
+	.option('-q, --qualify <file(s)>','Source code of unqualified imports (optional)', list)
+	.version('1.0.6','-v, --version')
 	.action(function(source){
+		if (program.exclude) exclude = glob.sync(program.exclude, {absolute:true});
 		if (program.qualify) {
 			for (var qualifySource of program.qualify) {
 				if (noWildcards(qualifySource)) {
@@ -126,7 +129,7 @@ program.on('--help', function(){
 	  console.log('  Notes:');
 	  console.log('  -----');
 	  console.log('  • All parameters support wildcards. Wildcard params must be quoted.');
-	  console.log('  • -q can be used to qualify "exposing (...)" or "exposing(MyType(...))" style imports.');
+	  console.log('  • -q qualifies "exposing (...)" or "exposing(MyType(...))" style imports.');
 	})
 
 program.parse(process.argv);
