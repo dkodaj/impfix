@@ -1,6 +1,6 @@
 module ImpWorker exposing (..)
 
-import Impfix exposing (impfixGraft)
+import Impfix exposing (impfix)
 import ImpworkerPorts exposing (deliverImport, deliverSource, error, output)
 import Json.Decode as Dec
 import Json.Decode.Pipeline exposing (decode, required)
@@ -68,5 +68,5 @@ fixed: File -> List String -> Value
 fixed file unqualifiedImports = 
    object
       [ ("name", Enc.string file.name)
-      , ("code", Enc.string <| impfixGraft file.code unqualifiedImports)
+      , ("code", Enc.string <| impfix file.code unqualifiedImports)
       ]

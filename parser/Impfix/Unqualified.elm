@@ -129,16 +129,19 @@ uqImportGrab allTypes match =
             Just { fullName = a
                  , shortName = Nothing
                  , exposes = Qualified []
+                 , match = ""
                  }
         Just a::Just ".."::bs->
             Just { fullName = a
                  , shortName = Nothing
                  , exposes = Qualified (exposeAll allTypes match.match)
+                 , match = ""
                  }
         Just a::Just b::cs->
             Just { fullName = a
                  , shortName = Nothing
                  , exposes = Qualified (exposeList allTypes b)
+                 , match = ""
                  }
         _->
             Nothing

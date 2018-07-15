@@ -87,7 +87,7 @@ program
 	.option('-r, --replace','Replace all affected files (equivalent to -o "**/*.*")')
 	.option('-x, --exclude <file(s)>','Don\' touch these files (e.g "-x ./elm-stuff/*.*")')
 	.option('-q, --qualify <file(s)>','Source code of unqualified imports (optional)', list)
-	.version('1.0.6','-v, --version')
+	.version('1.0.8','-v, --version')
 	.action(function(source){
 		if (program.exclude) exclude = glob.sync(program.exclude, {absolute:true});
 		if (program.qualify) {

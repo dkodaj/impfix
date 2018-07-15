@@ -10,5 +10,6 @@ type alias Import = {
       fullName: String
     , shortName: Maybe String
     , exposes: ExposeList
+    , match: String
     }
 

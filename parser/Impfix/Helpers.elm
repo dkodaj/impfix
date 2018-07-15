@@ -46,7 +46,7 @@ clean xs =
 components: String -> List String 
 components txt =
     --helper for Unqualified.deunion
-    --components "A String | B Float | C (Maybe Float)" == ["A String", "B Int", "C (Maybe Float)"] 
+    --components "String (List Bool) (Maybe {x:String,y:Int})" == ["String", "(List Bool)", "(Maybe {x:String,y:Int})"] 
     componentsHelp (indices " " txt) 0 txt
 
 componentsHelp idxs start txt =

@@ -3,7 +3,7 @@ module Impfix.Imports exposing (..)
 import Impfix.Helpers exposing (bracketed, clean, debracket, decomment, removeStringLiterals)
 import Impfix.ImpTypes exposing (Constructors(..), Expose(..), ExposeList(..), Import)
 import List exposing (map)
-import Regex exposing (HowMany(..), find, regex)
+import Regex exposing (find, HowMany(..), Match, regex)
 import String exposing (split, trim)
 
 exposeGrab: List (Maybe String) -> Maybe Expose
@@ -37,27 +37,30 @@ expListRegex = regex "(.+?)\\s*(?:\\(((?:\\w|\\s|\\.|,)*?)\\)\\s*)?(?:,\\s*|$)"
 
 imports: String -> List Import
 imports sourceTxt =
-    clean <| map importGrab <| map .submatches <| find All importsRegex <| decomment <| removeStringLiterals sourceTxt
+    clean <| map importGrab <| find All importsRegex <| decomment <| removeStringLiterals sourceTxt
 
-importGrab: List (Maybe String) -> Maybe Import
-importGrab submatch =
-    case submatch of
+importGrab: Match -> Maybe Import
+importGrab match =
+    case match.submatches of
         Just ""::whatever->
             Nothing
         Just a::b::Nothing::cs->
             Just { fullName = a
                  , shortName = b
                  , exposes = Qualified []
+                 , match = match.match
                  }
         Just a::b::Just ".."::cs->
             Just { fullName = a
                  , shortName = b
                  , exposes = Unqualified
+                 , match = match.match
                  }
         Just a::b::Just c::ds->
             Just { fullName = a
                  , shortName = b
                  , exposes = Qualified (exposeList c)
+                 , match = match.match
                  }
         _->
             Nothing
